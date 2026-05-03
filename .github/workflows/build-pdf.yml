@@ -1,0 +1,78 @@
+name: Build LearnCpp PDF
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Show runner location and test LearnCpp
+        run: |
+          curl -s https://ifconfig.co/country || true
+          curl -I https://www.learncpp.com || true
+
+      - name: Install base system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git \
+            make \
+            curl \
+            poppler-utils \
+            fonts-dejavu \
+            fonts-liberation
+
+      - name: Install pixi
+        run: |
+          curl -fsSL https://pixi.sh/install.sh | bash
+          echo "$HOME/.pixi/bin" >> "$GITHUB_PATH"
+
+      - name: Install Python dependencies
+        run: |
+          pixi install
+
+      - name: Install Chromium for Playwright
+        run: |
+          pixi run python -m playwright install --with-deps chromium
+
+      - name: Create .env
+        run: |
+          cat > .env <<'EOF'
+          DOWNLOAD_CONCURRENT_MAX=3
+          DOWNLOAD_CONTENT_RETRY=10
+          COMPUTE_PROCESS_MAX=2
+          COMPUTE_PROCESS_TIMEOUT=300
+          PDF_CONVERTION_MAX_RETRY=5
+          PLAYWRIGHT_TIMEOUT_MS=120000
+          BOOK_NAME=learncpp.pdf
+          REMOVE_CACHE_ON_SUCCESS=False
+          EOF
+
+      - name: Build PDF
+        run: |
+          pixi run python -m book
+
+      - name: Inspect generated PDF
+        if: always()
+        run: |
+          ls -lh learncpp.pdf || true
+          pdfinfo learncpp.pdf | grep -E "Pages|Encrypted|Tagged|Producer|Creator" || true
+          pdftotext -f 1 -l 1 learncpp.pdf - | head -80 || true
+          pdftotext -f 500 -l 505 learncpp.pdf - | head -80 || true
+          pdffonts learncpp.pdf | head -80 || true
+          pdfimages -f 1 -l 1 -list learncpp.pdf | head -40 || true
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: learncpp-pdf
+          path: |
+            learncpp.pdf
+            .tmp/**/*.pdf
+            .tmp/error
