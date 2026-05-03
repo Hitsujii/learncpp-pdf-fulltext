@@ -1,22 +1,25 @@
 [project]
 authors = ["raceychan <raceychan@gmail.com>"]
 channels = ["conda-forge"]
-description = "Add a short description here"
+description = "Build a local LearnCpp PDF"
 name = "book"
 platforms = ["linux-64"]
 version = "0.1.0"
 
 [tasks]
+run = "python -m book"
+install-browser = "python -m playwright install chromium"
+install-browser-with-deps = "python -m playwright install --with-deps chromium"
 
 [dependencies]
-aiohttp = ">=3.9.3,<3.10"
+aiohttp = ">=3.9.3,<4"
 loguru = ">=0.7.2,<0.8"
-pypdf = ">=4.1.0,<4.2"
+pypdf = ">=4.1.0,<6"
 python = "==3.12"
-python-dotenv = ">=1.0.1,<1.1"
-rich = ">=13.7.1,<13.8"
+python-dotenv = ">=1.0.1,<2"
+rich = ">=13.7.1,<14"
 selectolax = ">=0.3.20,<0.4"
-textual = ">=0.82.0,<0.83"
+textual = ">=0.82.0,<0.90"
 
 [pypi-dependencies]
-pdfkit = "~=1.0.0"
+playwright = ">=1.48,<2"
