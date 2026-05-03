@@ -1,111 +1,178 @@
-# LearnCPP-PDF
+# LearnCpp PDF Full Text Fork
+
+A fork of [`raceychan/learncpp_pdf`](https://github.com/raceychan/learncpp_pdf) focused on generating a LearnCpp PDF with embedded, selectable, copyable, and searchable text.
+
+The original project uses `wkhtmltopdf`/`pdfkit`. Its output is visually correct, but the generated PDF is not a text PDF: text cannot be selected, copied, or searched.
+
+This fork uses Playwright/Chromium with a custom print layout to generate a PDF that behaves like a regular text document.
 
 ## Disclaimer
 
-All content directly comes from the [learncpp.com](https://learncpp.com) website, no content changed, some decorative elements and the comment section is removed for better readability.
+All lesson content comes directly from [learncpp.com](https://learncpp.com). The lesson text is not modified. Decorative elements, navigation elements, and comments are removed for readability.
 
-> *Please consider supporting the website here [learncpp-about](https://www.learncpp.com/about/)*
+Please consider supporting LearnCpp through their [About page](https://www.learncpp.com/about/).
 
-since it specifically states that a pdf version should not be spread out by anyone and people should instead make pdf on their own, this tool is hence created.
+LearnCpp asks users not to redistribute PDF versions of the site. This repository only provides a generator so users can build a local copy for personal use. Generated PDFs are not committed to this repository and should not be redistributed.
 
-please consider give a star to this project if you like it!
+## Why this fork exists
 
-## PDF created by this tool
-![image](https://github.com/user-attachments/assets/42f8b9de-d3ac-4463-b82b-c4f79e6ba267)
+This fork solves two practical problems:
 
-### 
-Fast Download and Convertion time, Download all content within 5s with 20 concurrent requests. Comple the whole process within 90s.
-![image](https://github.com/user-attachments/assets/159b1e43-22b5-4cfa-897e-15ae72d11225)
-![image](https://github.com/user-attachments/assets/0ccd4d18-1ae6-4661-b528-c376c1f59768)
-![image](https://github.com/user-attachments/assets/39004585-7104-44b8-8e12-1ad172345b8f)
+1. It replaces the original `wkhtmltopdf`/`pdfkit` rendering path with Playwright/Chromium and a dedicated print stylesheet. This produces a PDF with embedded text instead of a visually correct but non-selectable output.
 
+2. It provides a [GitHub Actions workflow](#build-with-github-actions) for builds affected by Cloudflare `520` errors. When local access to LearnCpp fails before rendering starts, users can build the PDF from GitHub-hosted infrastructure instead.
 
-## Usage
+## Changes compared to the original project
 
-1. install wkhtmltopdf
-for ubuntu/debian users, do:
+- Replaces `wkhtmltopdf`/`pdfkit` with Playwright/Chromium
+- Adds a print-focused HTML/CSS layout
+- Generates PDFs with embedded text
+- Adds a [GitHub Actions workflow](#build-with-github-actions) for building the PDF as an artifact
+
+## Requirements
+
+This project uses [pixi](https://pixi.sh/) to manage the Python environment and dependencies.
+
+Required:
+
+- `pixi`
+- Chromium installed through Playwright
+
+Optional:
+
+- `make`, only needed for `make run`
+
+## Build locally
+
+Install dependencies:
 
 ```bash
-sudo apt-get install wkhtmltopdf
+pixi install
 ```
 
-> as a user who uses a different os than ubuntu/debian, you might see more details on this page [wkhtmltopdf-download](https://wkhtmltopdf.org/downloads.html)
-
-2. clone the repo
+Install Chromium for Playwright:
 
 ```bash
-git clone 'git@github.com:raceychan/learncpp_pdf.git' && cd learncpp_pdf
+pixi run python -m playwright install chromium
 ```
 
-3. execute the application
+Build the PDF:
 
 ```bash
-make book
+pixi run python -m book
 ```
-or, to re-run the application, do
+
+You can also use:
 
 ```bash
 make run
 ```
 
-### Configuration
+See [Output](#output) for the generated file location.
 
-You can create a '.env' file under the project root, the program will read them.
+## Build with GitHub Actions
 
-| key| type| default|
-| --- | --- | --- |
-| DOWNLOAD_CONCURRENT_MAX |int | 200 |
-| COMPUTE_PROCESS_MAX | int | os.cpu_count() |
-| COMPUTE_PROCESS_TIMEOUT | int | 60 |
-| DOWNLOAD_CONTENT_RETRY | int | 6 |
-| PDF_CONVERTION_MAX_RETRY | int | 3 |
-| BOOK_NAME | str | 'learncpp.pdf' |
-| REMOVE_CACHE_ON_SUCCESS | bool | False |
+Use the GitHub Actions workflow when LearnCpp returns Cloudflare `520` errors from your local network, or when you prefer to build the PDF from GitHub-hosted infrastructure.
 
-Note: setting DOWNLOAD_CONCURRENT_MAX to higher number might boost download speed, but some requests might fail as it exerts more pressure on the website
+To build the PDF from GitHub:
+
+1. Fork this repository.
+2. Open the `Actions` tab in your fork.
+3. Select `Build LearnCpp PDF`.
+4. Click `Run workflow`.
+5. Wait for the workflow run to finish.
+6. Download the generated PDF from the workflow run's artifacts section.
+
+## Configuration
+
+You can override defaults with a `.env` file in the project root.
+
+| key                      | type  | default        |
+| ------------------------ | ----- | -------------- |
+| DOWNLOAD_CONCURRENT_MAX  | int   | 200            |
+| COMPUTE_PROCESS_MAX      | int   | os.cpu_count() |
+| COMPUTE_PROCESS_TIMEOUT  | int   | 300            |
+| DOWNLOAD_CONTENT_RETRY   | int   | 6              |
+| PDF_CONVERTION_MAX_RETRY | int   | 3              |
+| BOOK_NAME                | str   | learncpp.pdf   |
+| REMOVE_CACHE_ON_SUCCESS  | bool  | False          |
+| PLAYWRIGHT_TIMEOUT_MS    | int   | 120000         |
+| PDF_FORMAT               | str   | A4             |
+| PDF_SCALE                | float | 1.0            |
+
+`PDF_CONVERTION_MAX_RETRY` intentionally keeps the original misspelled option name for compatibility.
+
+The default value of `DOWNLOAD_CONCURRENT_MAX` is kept for compatibility with the original project. If you override it, consider using a lower value to avoid putting unnecessary pressure on LearnCpp.
+
+Example:
+
+```env
+DOWNLOAD_CONCURRENT_MAX=3
+DOWNLOAD_CONTENT_RETRY=10
+COMPUTE_PROCESS_MAX=2
+COMPUTE_PROCESS_TIMEOUT=300
+PDF_CONVERTION_MAX_RETRY=5
+PLAYWRIGHT_TIMEOUT_MS=120000
+BOOK_NAME=learncpp.pdf
+REMOVE_CACHE_ON_SUCCESS=False
+```
 
 ## CLI
 
-You can use cli with following options to force-redo an action.
+Show available options:
 
 ```bash
 pixi run python -m book --help
 ```
-```bash
+
+```text
 options:
-  -h, --help      show this help message and exit
-  -D, --download  Downloading articles from learcpp.com, ignore cache
-  -C, --convert   Converting downloaded htmls to pdfs, ignore cache
-  -M, --merge     Merging Chapters into a single book, ignore cache
-  -R, --rmcache   Remove the cache folder
-  -A, --all       Download, convert and merge
-  -S, --showerrors show error log in the console
+  -h, --help        show this help message and exit
+  -D, --download    Download articles from learncpp.com, ignore cache
+  -C, --convert     Convert downloaded HTMLs to PDFs, ignore cache
+  -M, --merge       Merge chapters into a single book, ignore cache
+  -R, --rmcache     Remove the cache folder
+  -A, --all         Download, convert, and merge
+  -S, --showerrors  Show error log in the console
 ```
 
-example: re-run the convert process and remove the cache folder
+Example:
 
 ```bash
-pixi run python -m book --convert --rmcache
+pixi run python -m book --all
 ```
 
-if not command specified, all actions will be taken(cache would be applied to avoid uncessary requests).
+If no command is specified, all actions are executed. Cached files are reused when possible.
 
-## Use-Tips
+## Cache and retries
 
-- It is possible that the download process and/or the convert process might fail due to various reason, for example, the target site is overloaded, in most cases, you can simply just re-run the program to solve these problems.
-However, if you do think it is a bug, always feel free to post an issue.
+Downloaded pages and intermediate files are cached. Re-running the command usually resumes from the last successful step instead of starting from scratch.
 
-- You might want to compress the pdf book for performance and storage.
-check [pdfsizeopt](https://github.com/pts/pdfsizeopt) out.
+If a download or conversion step fails temporarily, run the command again. Cached files are reused when possible.
 
-## Features
+To remove the cache manually:
 
-- Ultra fast, utilize concurrency for scraping and parallel for making PDF, the whole process is expected to finish within a few minutes.
-- Rich cli interface showing realtime progress of the application
-- Cache on fail, you can just re-run the application without worrying about redundant IO or calcualtion.
+```bash
+pixi run python -m book --rmcache
+```
+
+## Output
+
+By default, the generated PDF is written to:
+
+```text
+learncpp.pdf
+```
+
+You can change the output filename with `BOOK_NAME` in `.env`.
+
+## Upstream project
+
+This fork is based on [`raceychan/learncpp_pdf`](https://github.com/raceychan/learncpp_pdf).
+
+It is not intended to replace the original project. It provides an alternative build path for users who need a LearnCpp PDF with embedded text or cannot access LearnCpp reliably from their local network.
 
 ## Alternatives
 
+- [Original LearnCPP-PDF](https://github.com/raceychan/learncpp_pdf)
 - [LearnCPP Downloader](https://github.com/amalrajan/learncpp-download)
-
-This does not utilize concurrent requests and multiprocessing, so it takes substantially more time to do the job.
