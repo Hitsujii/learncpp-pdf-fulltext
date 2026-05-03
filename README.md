@@ -1,4 +1,4 @@
-# LearnCpp PDF Full Text Fork
+# LearnCpp PDF Full Text Generator
 
 A fork of [`raceychan/learncpp_pdf`](https://github.com/raceychan/learncpp_pdf) focused on generating a LearnCpp PDF with embedded, selectable, copyable, and searchable text.
 
