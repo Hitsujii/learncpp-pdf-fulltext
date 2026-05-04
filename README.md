@@ -6,6 +6,9 @@ The original project uses `wkhtmltopdf`/`pdfkit`. Its output is visually correct
 
 This fork uses Playwright/Chromium with a custom print layout to generate a PDF that behaves like a regular text document.
 
+> [!WARNING]
+> If you are getting a **LearnCpp Cloudflare 520 error** locally, use the [GitHub Actions workflow](#build-with-github-actions) to build the PDF from GitHub-hosted infrastructure.
+
 ## Disclaimer
 
 All lesson content comes directly from [learncpp.com](https://learncpp.com). The lesson text is not modified. Decorative elements, navigation elements, and comments are removed for readability.
